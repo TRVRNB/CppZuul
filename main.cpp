@@ -70,7 +70,6 @@ int main(){
       cout << "SEARCH: look through this room\n" << flush;
       cout << "MOVE: move to a nearby room\n" << flush;
       cout << "PICK: pick up an item in the room (if one exists)\n" << flush;
-      cout << "USE: use one item on another\n" << flush;
       cout << "DROP: drop an item into this room, if it is empty\n" << flush;
     } else if (strcmp(input, "SEARCH") == 0){ // SEARCH
       cout << c_room->detailed_description << '\n' << flush;
@@ -154,20 +153,27 @@ int main(){
       } else {
 	cout << "There is nothing to pick up." << endl;
       }
-    } else if (strcmp(input, "USE") == 0){ // USE
-      // this will be used to make the gem key
-      
     } else if (strcmp(input, "DROP") == 0){ // DROP
       // drop an item on the ground, if there is space
       if (strcmp(c_room->item, "NONE") == 0){
-	for (int i = 0; i < ITEMS.size(); i++){
+	// both of the for loops start at 1 to exclude the NONE item
+	for (int i = 1; i < ITEMS.size(); i++){
 	  cout << ITEMS[i] << endl;
 	}
-	cout << "What item do you want to drop?:" << flush;
+	cout << "What item do you want to drop?: " << flush;
 	cin.ignore();
 	cin.getline(input1, 80);
-	for (int i = 0; i < ITEMS.size(); i++){
-	  
+	bool dropped = false;
+	for (int i = 1; i < ITEMS.size(); i++){
+	  if (strcmp(input1, ITEMS[i]) == 0){
+	    dropped = true;
+	    strcpy(c_room->item, ITEMS[i]);
+	    ITEMS.erase(ITEMS.begin() + i);
+	    cout << "Dropped " << c_room->item << '.' << endl;
+	  }
+	}
+	if (!dropped){
+	  cout << "Item not found." << endl;
 	}
       } else { // if there is no room
 	cout << "This room already has an item. How could a room possibly fit two items?" << endl;

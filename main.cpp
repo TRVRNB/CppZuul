@@ -13,8 +13,14 @@ char room_data[20][10][401] = { // definitions of rooms, excluding special logic
 };
 int ROOM_COUNT = 3;
 
+namespace zuul{ // this is so ROOMS can be used across functions without passing by reference
+  vector<room*> ROOMS;
+};
+
+
 // search for room using the name
-room* search_for_room(vector<room*>& ROOMS, char* room_name){
+room* search_for_room(char* room_name){
+  using namespace zuul;
   for (room* current_room : ROOMS){
     if (strcmp(current_room->name, room_name) == 0){
       return current_room;
@@ -25,8 +31,8 @@ room* search_for_room(vector<room*>& ROOMS, char* room_name){
 
 // main function
 int main(){
-  // first, build the ROOMS vector
-  vector<room*> ROOMS;
+  // first, build ROOMS
+  using namespace zuul;
   room* current_room;
   for (int i = 1; i < ROOM_COUNT; i++){ // starts at 1 to exclude the 'example' room
     current_room = new room;
@@ -49,7 +55,7 @@ int main(){
   room* c_room = ROOMS[0];
   c_room->explored = true;
   // opening message
-  cout << "\nYou are locked in an empty, dark bedroom.\nYou have no idea where you came from or where you'll go.\nThere is a locked door to the east.\nTo see a list of commands, type 'HELP'.\n" << flush;
+  cout << "\nYou are locked in an empty, dark bedroom.\nYou have no idea where you came from or where you'll go.\nTo the east, there is a locked door.\nTo see a list of commands, type 'HELP'.\n" << flush;
   char input[81] = ""; // input string, start empty
   char input1[81] = "";
   char input2[81] = "";
@@ -63,7 +69,8 @@ int main(){
       cout << "SEARCH: look through this room\n" << flush;
       cout << "MOVE: move to a nearby room\n" << flush;
       cout << "PICK: pick up an item in the room (if one exists)\n" << flush;
-      cout << "USE: use one item on another\n";
+      cout << "USE: use one item on another\n" << flush;
+      cout << "DROP: drop an item into this room, if it is empty\n" << flush;
     } else if (strcmp(input, "SEARCH") == 0){ // SEARCH
       cout << c_room->detailed_description << '\n' << flush;
     } else if (strcmp(input, "MOVE") == 0){ // MOVE
@@ -82,13 +89,59 @@ int main(){
       // move room, if a room was found
       if (strcmp(go_to, "NONE") != 0){
 	char* go_to1 = go_to;
-	room* to_visit = search_for_room(ROOMS, go_to1);
-	
+	room* to_visit = search_for_room(go_to1);
+	// search for key in inventory
+	bool has_key = false;
+	for (int i = 0; i < ITEMS.size() - 1; i++){ // iterate over every item, check for equality
+	  if (strcmp(ITEMS[i], to_visit->key) == 0){ // NONE is the first item in the ITEMS vector by default. this should prevent a crash here if the player has no items, and allow entry into any room with no key; i need to prevent the player from dropping this NONE item later
+	    has_key = true;
+	    strcpy(to_visit->key, ITEMS[i]); // remove the key requirement permanently, which should prevent the player from softlocking themselves by leaving the keys in the wrong room
+	    // break would be nice here, but it's against the rules
+	  }
+	}
+	if (has_key){
+	  c_room = to_visit;
+	  c_room->explored = true; // in the future, this will be described based on the interior rather than exterior when looking at neighboring rooms
+	  cout << "You are in " << c_room->description << ".";
+	  // describe neighboring rooms
+	  if (strcmp(c_room->NORTH, "NONE") != 0){ // NORTH
+	    room* to_describe = search_for_room(c_room->NORTH);
+	    if (to_describe->explored){
+	      cout << "To the north, there is the " << to_describe->name << '.' << endl; 
+	    } else {
+	      cout << "To the north, there is a " << to_describe->undiscovered_name << '.' << endl;
+	    }
+	  }
+	  if (strcmp(c_room->EAST, "NONE") != 0){ // EAST
+	    room* to_describe = search_for_room(c_room->EAST);
+	    if (to_describe->explored){
+	      cout << "To the east, there is the " << to_describe->name << '.' << endl; 
+	    } else {
+	      cout << "To the east, there is a " << to_describe->undiscovered_name << '.' << endl;
+	    }
+	  }
+	  if (strcmp(c_room->SOUTH, "NONE") != 0){ // SOUTH
+	    room* to_describe = search_for_room(c_room->SOUTH);
+	    if (to_describe->explored){
+	      cout << "To the south, there is the " << to_describe->name << '.' << endl; 
+	    } else {
+	      cout << "To the south, there is a " << to_describe->undiscovered_name << '.' << endl;
+	    }
+	  }
+	  if (strcmp(c_room->WEST, "NONE") != 0){ // WEST
+	    room* to_describe = search_for_room(c_room->WEST);
+	    if (to_describe->explored){
+	      cout << "To the west, there is the " << to_describe->name << '.' << endl; 
+	    } else {
+	      cout << "To the west, there is a " << to_describe->undiscovered_name << '.' << endl;
+	    }
+	  }
+	} // has key		  
       }
     } else if (strcmp(input, "PICK") == 0){ // PICK
-
+    
     } else if (strcmp(input, "USE") == 0){ // USE
-
+    
     }
   }
   return 0;

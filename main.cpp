@@ -9,7 +9,7 @@ using namespace std;
 char room_data[20][10][401] = { // definitions of rooms, excluding special logic
   {"Name", "Undiscovered Name", "Description", "Detailed Description", "Item", "Key", "NORTH", "EAST", "SOUTH", "WEST"}, // example
   {"old bedroom", "old bedroom", "You are in an empty, dusty bedroom.", "The light flickers. A dark key is on the mattress.", "grey key", "NONE", "NONE", "thin hallway", "NONE", "NONE"},
-  {"thin hallway", "dusty door", "The hallway is so thin, the walls seem to be shifting...", "There is nothing noteworthy in this room.", "NONE", "grey key", "NONE", "NONE", "NONE", "old bedroom"},
+  {"thin hallway", "dusty door", "You are in a hallway. The hallway is so thin, the walls seem to be shifting...", "There is nothing noteworthy in this room.", "NONE", "grey key", "NONE", "NONE", "NONE", "old bedroom"},
 };
 int ROOM_COUNT = 3;
 
@@ -46,12 +46,13 @@ int main(){
     // exits
     strcpy(current_room->NORTH, room_data[i][6]); // NORTH
     strcpy(current_room->EAST, room_data[i][7]); // EAST
+
     strcpy(current_room->SOUTH, room_data[i][8]); // SOUTH
     strcpy(current_room->WEST, room_data[i][9]); // WEST
     ROOMS.push_back(current_room);
   }
   // other variables
-  vector<const char*> ITEMS = {"NONE"};
+  vector<const char*> ITEMS = {"NONE"}; // inventory
   room* c_room = ROOMS[0];
   c_room->explored = true;
   // opening message
@@ -92,7 +93,7 @@ int main(){
 	room* to_visit = search_for_room(go_to1);
 	// search for key in inventory
 	bool has_key = false;
-	for (int i = 0; i < ITEMS.size() - 1; i++){ // iterate over every item, check for equality
+	for (int i = 0; i < ITEMS.size(); i++){ // iterate over every item, check for equality
 	  if (strcmp(ITEMS[i], to_visit->key) == 0){ // NONE is the first item in the ITEMS vector by default. this should prevent a crash here if the player has no items, and allow entry into any room with no key; i need to prevent the player from dropping this NONE item later
 	    has_key = true;
 	    strcpy(to_visit->key, ITEMS[i]); // remove the key requirement permanently, which should prevent the player from softlocking themselves by leaving the keys in the wrong room
@@ -102,7 +103,8 @@ int main(){
 	if (has_key){
 	  c_room = to_visit;
 	  c_room->explored = true; // in the future, this will be described based on the interior rather than exterior when looking at neighboring rooms
-	  cout << "You are in " << c_room->description << ".";
+	  cout << '\n';
+	  cout << c_room->description << "." << endl;;
 	  // describe neighboring rooms
 	  if (strcmp(c_room->NORTH, "NONE") != 0){ // NORTH
 	    room* to_describe = search_for_room(c_room->NORTH);
@@ -136,12 +138,40 @@ int main(){
 	      cout << "To the west, there is a " << to_describe->undiscovered_name << '.' << endl;
 	    }
 	  }
-	} // has key		  
+	} else { // hasn't key
+	  cout << "The door won't budge." << endl;
+	}
       }
     } else if (strcmp(input, "PICK") == 0){ // PICK
-    
+      // check for item, then add it to inventory
+      if (strcmp(c_room->item, "NONE") != 0){
+	static char item1[81]; // need to make a static char array since the room item will quickly change to NONE
+	strcpy(item1, c_room->item);
+	const char* item = item1;
+	ITEMS.push_back(item);
+	cout << "Picked up " << item << "." << endl;
+	strcpy(c_room->item, "NONE"); // get rid of this item from the room
+      } else {
+	cout << "There is nothing to pick up." << endl;
+      }
     } else if (strcmp(input, "USE") == 0){ // USE
-    
+      // this will be used to make the gem key
+      
+    } else if (strcmp(input, "DROP") == 0){ // DROP
+      // drop an item on the ground, if there is space
+      if (strcmp(c_room->item, "NONE") == 0){
+	for (int i = 0; i < ITEMS.size(); i++){
+	  cout << ITEMS[i] << endl;
+	}
+	cout << "What item do you want to drop?:" << flush;
+	cin.ignore();
+	cin.getline(input1, 80);
+	for (int i = 0; i < ITEMS.size(); i++){
+	  
+	}
+      } else { // if there is no room
+	cout << "This room already has an item. How could a room possibly fit two items?" << endl;
+      }
     }
   }
   return 0;

@@ -18,9 +18,13 @@ char room_data[20][10][401] = { // definitions of rooms, excluding special logic
  {"side-yard", "edge of the balcony", "You jump and land. However, you are actually in the side yard, with no gates or exits except back into the house.", "It smells like burnt fish.", "NONE", "NONE", "old bedroom", "old bedroom", "old bedroom", "old bedroom"}, // old bedroom being all 4 exits was actually a bug, but i thought it was funny so i kept it
  {"master bedroom", "gilded door", "This looks like the master bedroom.", "It's hard to see in the dark, but the room is very pompous. A key rests on the nightstand.", "nightstand key", "NONE", "master bathroom", "second-story hallway", "NONE", "NONE"},
  {"master bathroom", "door labeled \'Bathroom\'", "The room lights up with your dim flashlight. It is, indeed, a bathroom.", "It's very clean. For some reason, a pair of pliers sits on the counter.", "pliers", "NONE", "NONE", "NONE", "master bedroom", "NONE"},
- {"closet", "door", "You are in the closet.", "It's very dark, but you can make out a single AA battery.", "AA battery", "nightstand key", "NONE", "NONE", "second-story hallway", "NONE"},
+ {"closet", "door", "You are in the closet.", "It's very dark, but you can make out a single AA battery.", "AA battery", "nightstand key", "deeper closet", "NONE", "second-story hallway", "NONE"},
+ {"deeper closet", "closet", "You head deeper into the closet.", "It's very quiet in here.", "NONE", "NONE", "deeperer closet", "NONE", "second-story hallway", "NONE"},
+ {"deeperer closet", "closet", "You head even deeper.", "More closet. This would be a great spot to hide something.", "medieval sword", "NONE", "deepest closet", "NONE", "second-story hallway", "NONE"},
+ {"deepest closet", "closet", "You somehow find more closet to explore.", "Is there even a point to this now? It's clearly going to go on forever.", "NONE", "NONE", "deepestest closet", "NONE", "second-story hallway", "NONE"},
+ {"deepestest closet", "closet", "Finally, you reach a wall.", "Looking back to the light, the closet is only a few feet deep.", "NONE", "NONE", "NONE", "NONE", "second-story hallway", "NONE"},
 };
-int ROOM_COUNT = 12; // update this whenever you add a new room
+int ROOM_COUNT = 16; // update this whenever you add a new room
 
 
 namespace zuul{ // this is so ROOMS can be used across functions without passing by reference

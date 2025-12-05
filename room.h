@@ -14,6 +14,7 @@ class room {
   // other data
   char name[81] = "room"; // room name that is displayed, used as an "identifier"
   bool explored = false;
+  bool dark = false;
   char undiscovered_name[81] = "door"; // what to call the room before it has been explored
   char description[401] = "You enter a room."; // this appears upon room entry
   char detailed_description[401] = "There is nothing noteworthy in this room."; // appears if SEARCH command is used

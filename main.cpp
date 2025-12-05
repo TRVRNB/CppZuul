@@ -8,10 +8,20 @@ using namespace std;
 
 char room_data[20][10][401] = { // definitions of rooms, excluding special logic
   {"Name", "Undiscovered Name", "Description", "Detailed Description", "Item", "Key", "NORTH", "EAST", "SOUTH", "WEST"}, // example
-  {"old bedroom", "old bedroom", "You are in an empty, dusty bedroom.", "The light flickers. A dark key is on the mattress.", "grey key", "NONE", "NONE", "thin hallway", "NONE", "NONE"},
-  {"thin hallway", "dusty door", "You are in a hallway. The hallway is so thin, the walls seem to be shifting...", "There is nothing noteworthy in this room.", "NONE", "grey key", "NONE", "NONE", "NONE", "old bedroom"},
+  {"old bedroom", "old bedroom", "You are in a dusty bedroom.", "The light flickers. A dark key is on the mattress.", "grey key", "NONE", "NONE", "thin hallway", "NONE", "NONE"},
+  {"thin hallway", "dusty door", "You are in a hallway. The hallway is so thin, the walls seem to be shifting...", "You can smell mold. It's very humid, and the furniture is rotten.", "NONE", "grey key", "EXIT", "staircase", "rustic bathroom", "old bedroom"},
+  {"rustic bathroom", "door", "You enter a rustic, homely bathroom. There is a dead body in the bathtub.", "It's actually a mannequin. It's gripping a key tight.", "main key", "NONE", "thin hallway", "NONE", "NONE", "NONE"},
+ {"EXIT", "main door", "You exit the house.", "Detailed Description", "Item", "main key", "NONE", "NONE", "NONE", "NONE"},
+ {"staircase", "door", "You are on a staircase.", "The stairs are not up to code. Each one varies in height give-or-take an inch.\nSomeone could fall.", "NONE", "NONE", "second-story hallway", "NONE", "NONE", "thin hallway"},
+ {"second-story hallway", "top of the stairs", "It's another hallway. The walls are white, but the lack of light makes it difficult to see.", "The cupboards are all filled to the brim with AAA batteries.", "AAA batteries", "NONE", "closet", "balcony", "staircase", "master bedroom"},
+ {"balcony", "glass door", "You are on the balcony. You could *try* jumping outside, but it might be too far.", "An empty flashlight sits on the edge. It looks like it only takes AA batteries.", "flashlight", "NONE", "NONE", "NONE", "side-yard", "second-story hallway"},
+ {"side-yard", "edge of the balcony", "You jump and land. However, you are actually in the side yard, with no gates or exits except back into the house.", "It smells like burnt fish.", "NONE", "NONE", "old bedroom", "old bedroom", "old bedroom", "old bedroom"}, // old bedroom being all 4 exits was actually a bug, but i thought it was funny so i kept it
+ {"master bedroom", "gilded door", "This looks like the master bedroom.", "It's hard to see in the dark, but the room is very pompous. A key rests on the nightstand.", "nightstand key", "NONE", "master bathroom", "second-story hallway", "NONE", "NONE"},
+ {"master bathroom", "door labeled \'Bathroom\'", "The room lights up with your dim flashlight. It is, indeed, a bathroom.", "It's very clean. For some reason, a pair of pliers sits on the counter.", "pliers", "NONE", "NONE", "NONE", "master bedroom", "NONE"},
+ {"closet", "door", "You are in the closet.", "It's very dark, but you can make out a single AA battery.", "AA battery", "nightstand key", "NONE", "NONE", "second-story hallway", "NONE"},
 };
-int ROOM_COUNT = 3;
+int ROOM_COUNT = 12; // update this whenever you add a new room
+
 
 namespace zuul{ // this is so ROOMS can be used across functions without passing by reference
   vector<room*> ROOMS;
@@ -46,9 +56,11 @@ int main(){
     // exits
     strcpy(current_room->NORTH, room_data[i][6]); // NORTH
     strcpy(current_room->EAST, room_data[i][7]); // EAST
-
     strcpy(current_room->SOUTH, room_data[i][8]); // SOUTH
     strcpy(current_room->WEST, room_data[i][9]); // WEST
+    if (strcmp(current_room->name, "master bathroom") == 0){
+      current_room->dark = true;
+    }
     ROOMS.push_back(current_room);
   }
   // other variables
@@ -56,12 +68,13 @@ int main(){
   room* c_room = ROOMS[0];
   c_room->explored = true;
   // opening message
-  cout << "\nYou are locked in an empty, dark bedroom.\nYou have no idea where you came from or where you'll go.\nTo the east, there is a locked door.\nTo see a list of commands, type 'HELP'.\n" << flush;
+  cout << "\nYou wake up in a dusty bedroom. It feels like a prison cell.\nYou have no idea where you came from or where you'll go.\nTo the east, there is a locked door.\nTo see a list of commands, type 'HELP'.\n" << flush;
   char input[81] = ""; // input string, start empty
   char input1[81] = "";
   char input2[81] = "";
   char input3[81] = "";
-  while (strcmp(input, "QUIT") != 0){ // QUIT
+  bool running = true;
+  while ((strcmp(input, "QUIT") != 0) && (running)){ // QUIT
     cout << "$ Enter a command: " << flush;
     cin >> input;
     if (strcmp(input, "HELP") == 0){ // HELP
@@ -95,47 +108,72 @@ int main(){
 	for (int i = 0; i < ITEMS.size(); i++){ // iterate over every item, check for equality
 	  if (strcmp(ITEMS[i], to_visit->key) == 0){ // NONE is the first item in the ITEMS vector by default. this should prevent a crash here if the player has no items, and allow entry into any room with no key; i need to prevent the player from dropping this NONE item later
 	    has_key = true;
-	    strcpy(to_visit->key, ITEMS[i]); // remove the key requirement permanently, which should prevent the player from softlocking themselves by leaving the keys in the wrong room
+	    strcpy(to_visit->key, "NONE"); // remove the key requirement permanently, which should prevent the player from softlocking themselves by leaving the keys in the wrong room
 	    // break would be nice here, but it's against the rules
 	  }
 	}
 	if (has_key){
-	  c_room = to_visit;
-	  c_room->explored = true; // in the future, this will be described based on the interior rather than exterior when looking at neighboring rooms
-	  cout << '\n';
-	  cout << c_room->description << "." << endl;;
-	  // describe neighboring rooms
-	  if (strcmp(c_room->NORTH, "NONE") != 0){ // NORTH
-	    room* to_describe = search_for_room(c_room->NORTH);
-	    if (to_describe->explored){
-	      cout << "To the north, there is the " << to_describe->name << '.' << endl; 
-	    } else {
-	      cout << "To the north, there is a " << to_describe->undiscovered_name << '.' << endl;
+	  // look for flashlight and AA battery
+	  bool flashlight = false;
+	  bool AA_battery = false;
+	  for (const char* item : ITEMS){
+	    if (strcmp(item, "flashlight") == 0){
+	      flashlight = true;
+	    } else if (strcmp(item, "AA battery") == 0){
+	      AA_battery = true;
 	    }
 	  }
-	  if (strcmp(c_room->EAST, "NONE") != 0){ // EAST
-	    room* to_describe = search_for_room(c_room->EAST);
-	    if (to_describe->explored){
-	      cout << "To the east, there is the " << to_describe->name << '.' << endl; 
-	    } else {
-	      cout << "To the east, there is a " << to_describe->undiscovered_name << '.' << endl;
+	  bool complete_flashlight = flashlight && AA_battery; // need both
+	  if (complete_flashlight || !to_visit->dark){
+	    c_room = to_visit;
+	    cout << '\n';
+	    if (!c_room->explored){
+	      cout << c_room->description << "." << endl;
 	    }
-	  }
-	  if (strcmp(c_room->SOUTH, "NONE") != 0){ // SOUTH
-	    room* to_describe = search_for_room(c_room->SOUTH);
-	    if (to_describe->explored){
-	      cout << "To the south, there is the " << to_describe->name << '.' << endl; 
-	    } else {
-	      cout << "To the south, there is a " << to_describe->undiscovered_name << '.' << endl;
+	    c_room->explored = true;
+	    // ending text
+	    if (strcmp(c_room->name, "EXIT") == 0){
+	      cout << "You are free! You dash away from the manor." << endl;
+	      cout << "However, you are in a forest. This might take a few days." << endl;
+	      cout << "From the bushes, you see a car pull up to the side of the house. A stranger walks out, carrying a mannequin in each arm." << endl;
+	      cout << "You left just in time." << endl;
+	      running = false; // end the game
 	    }
-	  }
-	  if (strcmp(c_room->WEST, "NONE") != 0){ // WEST
-	    room* to_describe = search_for_room(c_room->WEST);
-	    if (to_describe->explored){
-	      cout << "To the west, there is the " << to_describe->name << '.' << endl; 
-	    } else {
-	      cout << "To the west, there is a " << to_describe->undiscovered_name << '.' << endl;
+	    // describe neighboring rooms
+	    if (strcmp(c_room->NORTH, "NONE") != 0){ // NORTH
+	      room* to_describe = search_for_room(c_room->NORTH);
+	      if (to_describe->explored){
+		cout << "To the north, there is the " << to_describe->name << '.' << endl; 
+	      } else {
+		cout << "To the north, there is a " << to_describe->undiscovered_name << '.' << endl;
+	      }
 	    }
+	    if (strcmp(c_room->EAST, "NONE") != 0){ // EAST
+	      room* to_describe = search_for_room(c_room->EAST);
+	      if (to_describe->explored){
+		cout << "To the east, there is the " << to_describe->name << '.' << endl; 
+	      } else {
+		cout << "To the east, there is a " << to_describe->undiscovered_name << '.' << endl;
+	      }
+	    }
+	    if (strcmp(c_room->SOUTH, "NONE") != 0){ // SOUTH
+	      room* to_describe = search_for_room(c_room->SOUTH);
+	      if (to_describe->explored){
+		cout << "To the south, there is the " << to_describe->name << '.' << endl; 
+	      } else {
+		cout << "To the south, there is a " << to_describe->undiscovered_name << '.' << endl;
+	      }
+	    }
+	    if (strcmp(c_room->WEST, "NONE") != 0){ // WEST
+	      room* to_describe = search_for_room(c_room->WEST);
+	      if (to_describe->explored){
+		cout << "To the west, there is the " << to_describe->name << '.' << endl; 
+	      } else {
+		cout << "To the west, there is a " << to_describe->undiscovered_name << '.' << endl;
+	      }
+	    }
+	  } else {
+	    cout << "The room is too dark! You head back." << endl;
 	  }
 	} else { // hasn't key
 	  cout << "The door won't budge." << endl;
@@ -144,12 +182,24 @@ int main(){
     } else if (strcmp(input, "PICK") == 0){ // PICK
       // check for item, then add it to inventory
       if (strcmp(c_room->item, "NONE") != 0){
-	static char item1[81]; // need to make a static char array since the room item will quickly change to NONE
-	strcpy(item1, c_room->item);
-	const char* item = item1;
-	ITEMS.push_back(item);
-	cout << "Picked up " << item << "." << endl;
-	strcpy(c_room->item, "NONE"); // get rid of this item from the room
+	// check if the player currently has pliers
+	bool pliers_held = false;
+	for (const char* item2 : ITEMS){
+	  if (strcmp(item2, "pliers") == 0){
+	    pliers_held = true;
+	  }
+	}
+	if (!pliers_held && strcmp(c_room->name, "rustic bathroom") == 0){ // mannequin key, no pliers
+	  cout << "The key won't budge. The mannequin has the grip of an eagle." << endl;
+	} else { // regular item
+	  char* item1 = new char; // need to make a static char array since the room item will quickly change to NONE
+	  strcpy(item1, c_room->item);
+	  const char* item = item1;
+	  ITEMS.push_back(item);
+	  cout << "Picked up " << item << "." << endl;
+	  strcpy(c_room->item, "NONE"); // get rid of this item from the room
+	  strcpy(c_room->detailed_description, "There is nothing noteworthy in this room.");
+	}
       } else {
 	cout << "There is nothing to pick up." << endl;
       }
@@ -168,6 +218,8 @@ int main(){
 	  if (strcmp(input1, ITEMS[i]) == 0){
 	    dropped = true;
 	    strcpy(c_room->item, ITEMS[i]);
+	    strcpy(c_room->detailed_description, "You remember dropping something in here.");
+	    delete ITEMS[i]; // remove the object from memory
 	    ITEMS.erase(ITEMS.begin() + i);
 	    cout << "Dropped " << c_room->item << '.' << endl;
 	  }
@@ -182,3 +234,5 @@ int main(){
   }
   return 0;
 }
+
+  

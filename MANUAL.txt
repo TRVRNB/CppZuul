@@ -1,0 +1,24 @@
+Pick up the key.
+Move east to the thin hallway.
+Move east to the staircase.
+Move north to the second-story hallway.
+Move east to the balcony.
+Pick up the flashlight.
+Move west to the second-story hallway.
+Move west to the master bedroom.
+Pick up the key.
+Move east to the second-story hallway.
+Move north to the closet.
+Pick up the AA battery.
+Move south to the second-story hallway.
+Move west to the master bedroom.
+Using your flashlight, move north to the master bathroom.
+Pick up the pliers.
+Move south to the master bedroom.
+Move east to the second-story hallway.
+Move south to the staircase.
+Move west to the thin hallway.
+Move south to the bathroom.
+Using your pliers, pick up the key.
+Move north to the thin hallway.
+Move north to the outside.

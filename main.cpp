@@ -132,7 +132,7 @@ int main(){
 	    c_room = to_visit;
 	    cout << '\n';
 	    if (!c_room->explored){
-	      cout << c_room->description << "." << endl;
+	      cout << c_room->description << endl;
 	    }
 	    c_room->explored = true;
 	    // ending text
